@@ -147,13 +147,30 @@ $result = $conn->query($query);
                     </thead>
                     <tbody>
                         <?php
+                        // Assuming you have a database connection established
+                        include '../connection/connection.php';
+
+                        // Check connection
+                        if ($conn->connect_error) {
+                            die("Connection failed: " . $conn->connect_error);
+                        }
+
+                        // Fetch distinct group names from the database
+                        $query = "SELECT DISTINCT groupName FROM members";
+                        $result = $conn->query($query);
+
                         // Loop through the fetched data and populate the table
                         while ($row = $result->fetch_assoc()) {
                             echo "<tr>";
                             echo "<td>" . $row["groupName"] . "</td>";
-                            echo "<td><button type='button' class='btn btn-primary btn-sm' data-toggle='modal' data-target='#customerModal" . $row['id'] . "'>View Details</button></td>";
+                            echo "<td><button type='button' class='btn btn-primary btn-sm' data-toggle='modal' data-target='#customerModal" . $row['groupName'] . "'>View Details</button></td>";
                             echo "</tr>";
                         }
+                        
+                        
+
+
+
                         ?>
                     </tbody>
                 </table>
@@ -161,35 +178,62 @@ $result = $conn->query($query);
             <!-- /.content -->
         </div>
         <!-- /.content-wrapper -->
-
+        
         <!-- Modal -->
-        <?php
-        // Reset the result set pointer
-        $result->data_seek(0);
+<?php
+// Reset the result set pointer
+$result->data_seek(0);
 
-        // Modal structure outside the loop
-        while ($row = $result->fetch_assoc()) {
-            echo "<div class='modal fade' id='customerModal" . $row['id'] . "' tabindex='-1' role='dialog' aria-labelledby='customerModalLabel' aria-hidden='true'>";
-            echo "<div class='modal-dialog' role='document'>";
-            echo "<div class='modal-content'>";
-            echo "<div class='modal-header'>";
-            echo "<h5 class='modal-title' id='customerModalLabel'>Customer Details</h5>";
-            echo "<button type='button' class='close' data-dismiss='modal' aria-label='Close'>";
-            echo "<span aria-hidden='true'>&times;</span>";
-            echo "</button>";
-            echo "</div>";
-            echo "<div class='modal-body'>";
-            echo "<p><strong>Group Name:</strong> " . $row['groupName'] . "</p>";
+// Modal structure outside the loop
+while ($row = $result->fetch_assoc()) {
+    echo "<div class='modal fade' id='customerModal" . $row['id'] . "' tabindex='-1' role='dialog' aria-labelledby='customerModalLabel' aria-hidden='true'>";
+    // Rest of your modal structure remains unchanged
+    // Assuming you have a database connection established
+    include '../connection/connection.php';
+
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    // Fetch distinct group names from the database
+    $query = "SELECT DISTINCT groupName FROM members";
+    $resultGroupName = $conn->query($query);
+
+    // Loop through the fetched data and populate the table
+    while ($rowGroupName = $resultGroupName->fetch_assoc()) {
+        echo "<tr>";
+        echo "<td>" . $rowGroupName["groupName"] . "</td>";
+        echo "<td><button type='button' class='btn btn-primary btn-sm view-details-btn' data-toggle='modal' data-target='#customerModal" . $rowGroupName['groupName'] . "'>View Details</button></td>";
+        echo "</tr>";
+        // Fetch members information for the current group
+        $membersQuery = "SELECT * FROM members WHERE groupName = '" . $rowGroupName['groupName'] . "'";
+        $membersResult = $conn->query($membersQuery);
+        
+        // Modal structure for displaying member details
+        echo "<div class='modal fade' id='customerModal" . $rowGroupName['groupName'] . "' tabindex='-1' role='dialog' aria-labelledby='customerModalLabel' aria-hidden='true'>";
+        echo "<div class='modal-dialog' role='document'>";
+        echo "<div class='modal-content'>";
+        echo "<div class='modal-header'>";
+        echo "<h5 class='modal-title' id='customerModalLabel'>Member Details for <span class='group-name'>" . $rowGroupName['groupName'] . "</span></h5>";
+        echo "<button type='button' class='close' data-dismiss='modal' aria-label='Close'>";
+        echo "<span aria-hidden='true'>&times;</span>";
+        echo "</button>";
+        echo "</div>";
+        echo "<div class='modal-body'>";
+        
+        // Display member information here based on $membersResult
+        while ($member = $membersResult->fetch_assoc()) {
+            echo "<p><strong>Name:</strong> " . $member['name'] . "</p>";
             // Add more details as needed
-            echo "</div>";
-            echo "<div class='modal-footer'>";
-            echo "<button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>";
-            echo "</div>";
-            echo "</div>";
-            echo "</div>";
-            echo "</div>";
-        }
-        ?>
+        
+    }
+}
+}
+?>
+
+
+
 
         <?php include '../footer.php' ?>
     </div>
@@ -214,7 +258,7 @@ $result = $conn->query($query);
     <!-- /.content-wrapper -->
    
 
-
+    <html>
   </div>
   <!-- ./wrapper -->
   <script src="../adminsidebar/activesidebar.js"></script>
